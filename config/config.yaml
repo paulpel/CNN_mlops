@@ -1,0 +1,108 @@
+# Experiment metadata
+experiment:
+  name: "cifar10-cnn-baseline"
+  description: "CNN classifier for CIFAR-10 with MLflow tracking"
+  tags:
+    - "computer-vision"
+    - "pytorch"
+    - "baseline"
+
+# MLflow settings
+mlflow:
+  tracking_uri: "mlruns"  # Local directory; could be remote server
+  artifact_location: "artifacts"
+  registered_model_name: "cifar10-cnn"
+
+# Random seed for reproducibility
+seed: 42
+
+# Hardware settings
+device: "cuda"  # Will fallback to CPU if CUDA unavailable
+
+# Data configuration
+data:
+  dataset_name: "CIFAR10"
+  data_dir: "./data"  # Where to download/cache dataset
+  batch_size: 128
+  num_workers: 4  # For DataLoader parallelism
+  validation_split: 0.1  # 10% of training data for validation
+  shuffle: true
+  pin_memory: true  # Faster data transfer to GPU
+
+# Data augmentation (for training only)
+augmentation:
+  enabled: true
+  random_crop: 32
+  random_horizontal_flip: true
+  normalize:
+    mean: [0.4914, 0.4822, 0.4465]  # CIFAR-10 stats
+    std: [0.2470, 0.2435, 0.2616]
+
+# Model architecture - flexible parametrization
+model:
+  type: "CNN"
+  input_channels: 3  # RGB images
+  num_classes: 10  # CIFAR-10 classes
+  
+  # Convolutional layers - easy to experiment with depth
+  conv_channels: [64, 128, 256]  # 3 conv blocks
+  kernel_size: 3
+  padding: 1
+  use_batch_norm: true
+  
+  # Fully connected layers
+  fc_hidden_dims: [512, 256]  # Can add/remove layers easily
+  dropout_rate: 0.5
+  
+  # Activation function
+  activation: "relu"  # Options: relu, leaky_relu, elu
+
+# Training configuration
+training:
+  epochs: 50
+  learning_rate: 0.001
+  weight_decay: 0.0001  # L2 regularization
+  
+  # Optimizer settings
+  optimizer:
+    type: "adam"  # Options: adam, sgd, adamw
+    betas: [0.9, 0.999]
+    eps: 1.0e-8
+  
+  # Learning rate scheduler (optional)
+  scheduler:
+    enabled: true
+    type: "step"  # Options: step, cosine, plateau
+    step_size: 15
+    gamma: 0.1
+  
+  # Loss function
+  loss_function: "cross_entropy"  # PyTorch's CrossEntropyLoss
+  
+  # Early stopping
+  early_stopping:
+    enabled: true
+    patience: 10
+    min_delta: 0.001
+
+# Evaluation settings
+evaluation:
+  metrics:
+    - "accuracy"
+    - "loss"
+    - "top5_accuracy"  # Top-5 accuracy for CIFAR-10
+  save_confusion_matrix: true
+  save_misclassified_samples: 10  # Save first N misclassified images
+
+# Checkpointing
+checkpointing:
+  save_best_only: true  # Save only the best model
+  monitor: "val_accuracy"  # Metric to monitor
+  mode: "max"  # 'max' for accuracy, 'min' for loss
+  save_frequency: 5  # Save every N epochs (if not save_best_only)
+
+# Logging configuration
+logging:
+  log_every_n_steps: 50  # Log metrics every N batches
+  log_images: true  # Log sample predictions as images
+  num_images_to_log: 16  # Number of sample images
